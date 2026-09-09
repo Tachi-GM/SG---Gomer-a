@@ -1,0 +1,48 @@
+.bg-azul-izq {
+            background-color: #2b5be2; /* Azul vibrante de la mitad izquierda */
+        }
+        
+        .btn-capsula {
+            background-color: rgba(255, 255, 255, 0.4); /* Blanco semi-transparente */
+            color: #0d1b3e; /* Texto oscuro/azul marino */
+            font-weight: 500;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 50px; /* Hace el botón completamente redondeado */
+            padding: 14px 40px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+.btn-capsula:hover {
+    background-color: rgba(255, 255, 255, 0.6);
+    color: #000;
+    transform: scale(1.03);
+}
+
+.texto-pie {
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    color: #0d1b3e; /* Color oscuro idéntico a la imagen */
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centra la barrita con respecto al texto */
+    gap: 4px; /* Separación entre el texto y la barra */
+}
+
+/* Esta es la barrita inferior */
+.texto-pie::after {
+    content: "";
+    display: block;
+    width: 100%; /* Ajusta este porcentaje si quieres que sea más corta o más larga */
+    height: 1.5px; /* Grosor de la línea */
+    background-color: #0d1b3e; /* Mismo color oscuro del texto */
+}
+
+.logo-empresa {
+    max-width: 80%;
+    height: auto;
+    mix-blend-mode: multiply; 
+    filter: contrast(105%); 
+}
