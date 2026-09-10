@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 from datetime import date
 
 app = Flask(__name__)
+app.secret_key = "modo-milagritos-activo"  # necesario para usar session
 
 def obtener_conexion():
     conexion = sqlite3.connect("sg_gomeria.db")
@@ -10,15 +11,44 @@ def obtener_conexion():
     conexion.execute("PRAGMA foreign_keys = ON")
     return conexion
 
+def modo_activo():
+    # Devuelve True/False según si Milagritos está prendido
+    return session.get('modo_milagritos', False)
+
+# Ruta para prender/apagar el modo, y volver a donde estabas
+@app.route('/toggle-milagritos')
+def toggle_milagritos():
+    session['modo_milagritos'] = not session.get('modo_milagritos', False)
+    # request.referrer = la página desde la que vino el usuario
+    return redirect(request.referrer or url_for('home'))
+
 # Pantalla de inicio (Botones Mataburros / Clientes)
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html', milagritos=modo_activo())
 
-# Pantalla de Clientes (En construcción)
+# Pantalla de Gestión de Clientes y Dashboard General
 @app.route('/clientes')
 def clientes():
-    return "<h1>Pantalla de Clientes (En construcción)</h1>"
+    conexion = sqlite3.connect("sg_gomeria.db")
+    conexion.row_factory = sqlite3.Row
+    cursor = conexion.cursor()
+    
+    empresas = cursor.execute("""
+        SELECT id_cliente, nom_cli, cuit, tel, mail 
+        FROM clientes 
+        ORDER BY nom_cli
+    """).fetchall()
+    
+    remitos = cursor.execute("""
+        SELECT t.id_trabajo, t.remito, t.fecha, c.nom_cli, t.total, t.estado
+        FROM trabajos t
+        JOIN clientes c ON t.id_cliente = c.id_cliente
+        ORDER BY t.fecha DESC, t.id_trabajo DESC
+    """).fetchall()
+    
+    conexion.close()
+    return render_template('clientes.html', empresas=empresas, remitos=remitos, milagritos=modo_activo())
 
 # Pantalla del Formulario Mataburros
 @app.route('/mataburros')
@@ -26,16 +56,11 @@ def mataburros():
     conexion = obtener_conexion()
     conexion.row_factory = sqlite3.Row
     
-    # Traemos las empresas para el desplegable
     empresas = conexion.execute("SELECT id_cliente, nom_cli FROM clientes").fetchall()
-    
-    # Traemos las tareas con sus precios para los desplegables de tareas
     tareas = conexion.execute("SELECT id_tarea, nom_tar, precio FROM tareas").fetchall()
     
     conexion.close()
-    
-    # Se los enviamos al HTML
-    return render_template('mataburros.html', empresas=empresas, tareas=tareas)
+    return render_template('mataburros.html', empresas=empresas, tareas=tareas, milagritos=modo_activo())
 
 @app.route('/enviar-trabajo', methods=['POST'])
 def enviar_trabajo():

@@ -46,3 +46,87 @@
     mix-blend-mode: multiply; 
     filter: contrast(105%); 
 }
+
+/* ===== MODO MILAGRITOS 🐾 ===== */
+body.modo-milagritos {
+    background-color: #ffe4ec !important;
+    transition: background-color 0.4s ease;
+}
+
+body.modo-milagritos .barra-superior,
+body.modo-milagritos .bg-azul-izq {
+    background-color: #ff8fab !important;
+}
+
+body.modo-milagritos .tarjeta-empresa,
+body.modo-milagritos .tabla-remitos,
+body.modo-milagritos .tarjeta-formulario,
+body.modo-milagritos .card {
+    background-color: #fff0f5 !important;
+    border: 2px dashed #ffb3c6 !important;
+}
+
+body.modo-milagritos .btn-primary,
+body.modo-milagritos .btn-capsula {
+    background-color: #ff6f91 !important;
+    border-color: #ff6f91 !important;
+}
+
+body.modo-milagritos .btn-success {
+    background-color: #ffa8c5 !important;
+    border-color: #ffa8c5 !important;
+    color: #7a2e46 !important;
+}
+
+body.modo-milagritos h1,
+body.modo-milagritos h2,
+body.modo-milagritos h5,
+body.modo-milagritos .fw-bold {
+    color: #c9184a !important;
+}
+
+body.modo-milagritos::before {
+    content: "🐾";
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    font-size: 2rem;
+    opacity: 0.5;
+    z-index: 0;
+}
+body.modo-milagritos::after {
+    content: "🐾";
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    font-size: 2rem;
+    opacity: 0.5;
+    transform: rotate(180deg);
+    z-index: 0;
+}
+
+.btn-modo-milagritos {
+    border-radius: 50px;
+    border: none;
+    background-color: #ffccd5;
+    color: #7a2e46;
+    font-weight: bold;
+    padding: 6px 16px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+.btn-modo-milagritos:hover {
+    background-color: #ff8fab;
+    color: white;
+}
+body.modo-milagritos .btn-modo-milagritos {
+    background-color: #c9184a;
+    color: white;
+}
+
+.hada-decorativa {
+    display: none;
+}
+body.modo-milagritos .hada-decorativa {
+    display: inline;
+}

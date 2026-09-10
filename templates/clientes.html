@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Clientes e Historial - Gomería El Puente</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/estilos.css">
+    <style>
+        body {
+            background-color: #f0f4f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .barra-superior {
+            background-color: #1a42b8;
+            color: white;
+        }
+        .tarjeta-empresa {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .tarjeta-empresa:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .badge-pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        .badge-pagado {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        .tabla-remitos {
+            background-color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+        .logo-nav {
+            max-height: 55px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+    </style>
+</head>
+<body class="{{ 'modo-milagritos' if milagritos else '' }}">
+
+    <!-- 1. BARRA SUPERIOR -->
+    <header class="barra-superior py-3 px-4 shadow-sm">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <a href="/" class="btn btn-sm btn-outline-light px-3 fw-bold rounded-pill">
+                &larr; ATRÁS
+            </a>
+            <h1 class="h4 mb-0 text-uppercase fw-bold letter-spacing-1">
+                Clientes e Historial de Remitos
+            </h1>
+            <a href="/toggle-milagritos" class="btn btn-modo-milagritos">
+                🧚
+            </a>
+            <img src="/static/logo.png" alt="Gomería El Puente" class="logo-nav">
+        </div>
+    </header>
+
+    <main class="container py-4">
+
+        <!-- 2. BOTÓN Y FORMULARIO PARA AGREGAR EMPRESA -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h5 text-secondary fw-bold mb-0 text-uppercase"><span class="hada-decorativa">✨</span> Nuestras Empresas (Clientes)<span class="hada-decorativa">✨</span></h2>
+            <button class="btn btn-success px-4 fw-bold rounded-pill shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#formNuevoCliente">
+                + AGREGAR NUEVA EMPRESA
+            </button>
+        </div>
+
+        <!-- Formulario desplegable para agregar cliente -->
+        <div class="collapse mb-4" id="formNuevoCliente">
+            <div class="card card-body p-4 border-0 shadow-sm rounded-4 bg-white">
+                <h5 class="fw-bold mb-3 text-primary">Dar de Alta una Nueva Empresa</h5>
+                <form action="/agregar-cliente" method="POST" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-secondary">Razón Social / Nombre</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Ej: Quilmes Logística" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-secondary">CUIT</label>
+                        <input type="text" name="cuit" class="form-control" placeholder="Ej: 30-71234567-9" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-secondary">Teléfono</label>
+                        <input type="text" name="tel" class="form-control" placeholder="Ej: 011-4567-8900">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-secondary">Email</label>
+                        <input type="email" name="mail" class="form-control" placeholder="contacto@empresa.com">
+                    </div>
+                    <div class="col-12 text-end mt-3">
+                        <button type="submit" class="btn btn-primary px-4 fw-bold rounded-pill">Guardar Empresa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. PANEL 1: GRILLA DE TARJETAS DE EMPRESAS -->
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+            {% for emp in empresas %}
+            <div class="col">
+                <div class="card h-100 tarjeta-empresa p-3 bg-white">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="card-title fw-bold text-dark text-uppercase mb-3">{{ emp['nom_cli'] }}</h5>
+                            <p class="card-text mb-1 text-muted small">
+                                <strong>CUIT:</strong> {{ emp['cuit'] or 'Sin registrar' }}
+                            </p>
+                            <p class="card-text mb-1 text-muted small">
+                                <strong>Teléfono:</strong> {{ emp['tel'] or 'Sin registrar' }}
+                            </p>
+                            <p class="card-text mb-3 text-muted small">
+                                <strong>Email:</strong> {{ emp['mail'] or 'Sin registrar' }}
+                            </p>
+                        </div>
+                        <a href="/historial-cliente?id_cliente={{ emp['id_cliente'] }}" class="btn btn-outline-primary w-100 fw-bold rounded-pill mt-3">
+                            Ver Historial &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">No hay empresas registradas todavía. ¡Usá el botón verde para agregar la primera!</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- 4. PANEL 2: HISTORIAL GENERAL DE REMITOS -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 text-secondary fw-bold mb-0 text-uppercase"><span class="hada-decorativa">✨</span> Historial General de Remitos (Taller) <span class="hada-decorativa">✨</span></h2>
+            <span class="badge bg-secondary rounded-pill px-3 py-2">{{ remitos|length }} remitos emitidos</span>
+        </div>
+
+        <div class="tabla-remitos">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="text-secondary small text-uppercase">
+                            <th class="py-3 px-4">Fecha</th>
+                            <th class="py-3">N° Remito</th>
+                            <th class="py-3">Empresa</th>
+                            <th class="py-3 text-end">Total</th>
+                            <th class="py-3 text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in remitos %}
+                        <tr>
+                            <td class="py-3 px-4 fw-medium">{{ r['fecha'] }}</td>
+                            <td class="py-3 fw-bold text-primary">#{{ r['remito'] }}</td>
+                            <td class="py-3 fw-bold">{{ r['nom_cli'] }}</td>
+                            <td class="py-3 text-end fw-bold text-dark fs-6">${{ "{:,.2f}".format(r['total']) }}</td>
+                            <td class="py-3 text-center">
+                                {% if r['estado'] == 'PAGADO' %}
+                                    <span class="badge-pagado">PAGADO</span>
+                                {% else %}
+                                    <span class="badge-pendiente">PENDIENTE</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                Aún no se han registrado trabajos en el sistema.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bootstrap JS para que funcione el botón desplegable de nueva empresa -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
