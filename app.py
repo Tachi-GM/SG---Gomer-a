@@ -30,8 +30,7 @@ def home():
 # Pantalla de Gestión de Clientes y Dashboard General
 @app.route('/clientes')
 def clientes():
-    conexion = sqlite3.connect("sg_gomeria.db")
-    conexion.row_factory = sqlite3.Row
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     
     empresas = cursor.execute("""
@@ -54,13 +53,62 @@ def clientes():
 @app.route('/mataburros')
 def mataburros():
     conexion = obtener_conexion()
-    conexion.row_factory = sqlite3.Row
     
     empresas = conexion.execute("SELECT id_cliente, nom_cli FROM clientes").fetchall()
     tareas = conexion.execute("SELECT id_tarea, nom_tar, precio FROM tareas").fetchall()
     
     conexion.close()
     return render_template('mataburros.html', empresas=empresas, tareas=tareas, milagritos=modo_activo())
+
+@app.route('/historial-cliente')
+def historial_cliente():
+    id_cliente = request.args.get('id_cliente')
+    periodo_seleccionado = request.args.get('periodo', 'todos')
+
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+
+    cliente = cursor.execute("SELECT id_cliente, nom_cli, cuit FROM clientes WHERE id_cliente = ?", (id_cliente,)).fetchone()
+    # 1. Armamos la consulta base y la lista de parámetros
+    query = """
+        SELECT t.id_trabajo, t.remito, t.fecha, t.total,
+               GROUP_CONCAT(tar.nom_tar, ', ') AS detalle_tareas
+        FROM trabajos t
+        LEFT JOIN detalle_trabajos dt ON t.id_trabajo = dt.id_trabajo
+        LEFT JOIN tareas tar ON dt.id_tarea = tar.id_tarea
+        WHERE t.id_cliente = ?
+    """
+    parametros = [id_cliente]
+
+    # Buscamos qué meses/años tienen trabajos para crear las pestañas
+    meses_disponibles = cursor.execute("""
+        SELECT DISTINCT strftime('%Y-%m', fecha) AS periodo
+        FROM trabajos
+        WHERE id_cliente = ?
+        ORDER BY periodo DESC
+    """, (id_cliente,)).fetchall()
+
+    # 2. Si eligió un mes específico (y no "todos"), le sumamos la condición:
+    if periodo_seleccionado and periodo_seleccionado != 'todos':
+        query += " AND strftime('%Y-%m', t.fecha) = ?"
+        parametros.append(periodo_seleccionado)
+
+    # 3. Le agregamos el cierre obligatorio (agrupar y ordenar por fecha)
+    query += " GROUP BY t.id_trabajo ORDER BY t.fecha DESC"
+
+    # 4. Ejecutamos la consulta con sus parámetros
+    remitos = cursor.execute(query, parametros).fetchall()
+
+    # 5. Obtenemos el total y el total por mes
+    total_mes = sum(r['total'] for r in remitos)
+
+    return render_template('historial-cliente.html',
+                        cliente=cliente,
+                        remitos=remitos, 
+                        total_mes=total_mes,
+                        meses_disponibles=meses_disponibles,
+                        periodo_seleccionado=periodo_seleccionado)
+
 
 @app.route('/enviar-trabajo', methods=['POST'])
 def enviar_trabajo():
@@ -80,8 +128,7 @@ def enviar_trabajo():
     fecha_hoy = date.today().strftime("%Y-%m-%d") # Fecha en formato YYYY-MM-DD
     
     # 2. Conectamos a SQLite
-    conexion = sqlite3.connect("sg_gomeria.db")
-    conexion.row_factory = sqlite3.Row
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     
     try:
