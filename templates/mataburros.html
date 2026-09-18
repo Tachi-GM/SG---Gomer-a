@@ -41,6 +41,23 @@
             border-color: #1a42b8;
             box-shadow: 0 0 0 4px rgba(26, 66, 184, 0.15);
         }
+
+        .input-cantidad {
+            min-width: 45px;
+            width: 45px;
+            padding-left: 2px;
+            padding-right: 2px;
+            text-align: center;
+        }
+        .input-cantidad::-webkit-inner-spin-button,
+        .input-cantidad::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-cantidad {
+            -moz-appearance: textfield;
+        }
         .btn-accion-tarea {
             font-weight: 600;
             border-radius: 50px;
@@ -129,9 +146,9 @@
                         
                             <!-- Control de cantidad -->
                             <div class="input-group" style="width: 130px;">
-                                <button type="button" class="btn btn-outline-secondary" onclick="modificarCantidad(this, -1)">-</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="modificarCantidad(this, -1)">-</button>
                                 <input type="number" name="cantidades" class="form-control text-center input-cantidad" value="1" min="1" readonly>
-                                <button type="button" class="btn btn-outline-secondary" onclick="modificarCantidad(this, 1)">+</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="modificarCantidad(this, 1)">+</button>
                             </div>
                         </div>
                     </div>
@@ -139,6 +156,10 @@
 
                 <!-- 4. Botón Guardar / Enviar -->
                 <div class="mt-5">
+                    <div class="d-flex justify-content-between align-items-center mt-3 p-3 rounded-3" style="background-color:#eef2ff;">
+                        <span class="fw-bold text-secondary text-uppercase small">Total Parcial</span>
+                        <span id="total-parcial" class="fw-bold fs-5" style="color:#1a42b8;">$0.00</span>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow" style="background-color: #1a42b8; border: none; font-size: 1.05rem;">
                         Guardar Remito y Calcular Total
                     </button>
@@ -154,14 +175,17 @@
             const contenedor = document.getElementById('contenedor-tareas');
             const primerFila = contenedor.querySelector('.fila-tarea');
             
-            // Clonamos toda la fila (select + botones de cantidad)
             const nuevaFila = primerFila.cloneNode(true);
-            
-            // Reseteamos el select y la cantidad a 1
             nuevaFila.querySelector('select').selectedIndex = 0;
-            nuevaFila.querySelector('.input-cantidad').value = 1;
             
+            // 1️⃣ PRIMERO insertamos la fila en la página
             contenedor.appendChild(nuevaFila);
+            
+            // 2️⃣ RECIÉN AHORA tocamos su valor, cuando ya está "conectada" y visible
+            const inputCantidad = nuevaFila.querySelector('.input-cantidad');
+            inputCantidad.value = 1;
+            
+            calcularTotal();
         }
 
         function quitarFilaTarea() {
@@ -170,6 +194,8 @@
             if (filas.length > 1) {
                 contenedor.removeChild(filas[filas.length - 1]);
             }
+        
+            calcularTotal();
         }
 
         function cambiarLista(numeroLista) {
@@ -202,6 +228,8 @@
             const botonActivo = document.getElementById(`btn-l${numeroLista}`);
             botonActivo.classList.remove('btn-outline-primary');
             botonActivo.classList.add('btn-primary');
+
+            calcularTotal();
         }
 
         function modificarCantidad(boton, cambio) {
@@ -214,7 +242,34 @@
             if (nuevoValor >= 1) {
                 input.value = nuevoValor;
             }
+            calcularTotal();
         }
+
+        function calcularTotal() {
+            const filas = document.querySelectorAll('#contenedor-tareas .fila-tarea');
+            const listaActual = document.getElementById('tipo_lista').value; // "1", "2" o "3"
+            let total = 0;
+
+            filas.forEach(fila => {
+                const select = fila.querySelector('select');
+                const cantidadInput = fila.querySelector('.input-cantidad');
+                const opcionSeleccionada = select.options[select.selectedIndex];
+
+                const precio = parseFloat(opcionSeleccionada.getAttribute(`data-precio${listaActual}`)) || 0;
+                const cantidad = parseInt(cantidadInput.value) || 0;
+
+                total += precio * cantidad;
+            });
+
+            document.getElementById('total-parcial').textContent =
+                `$${total.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        document.getElementById('contenedor-tareas').addEventListener('change', function(e) {
+        if (e.target.tagName === 'SELECT') {
+            calcularTotal();
+        }
+    });
     </script>
 </body>
 </html>
