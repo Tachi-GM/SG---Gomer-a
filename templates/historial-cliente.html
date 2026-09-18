@@ -50,14 +50,14 @@
             max-height: 55px;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
         }
-    </style>
+</style>
 </head>
 <body class="{{ 'modo-milagritos' if milagritos else '' }}">
 
     <!-- 1. BARRA SUPERIOR -->
     <header class="barra-superior py-3 px-4 shadow-sm">
         <div class="container-fluid d-flex justify-content-between align-items-center">
-            <a href="/" class="btn btn-sm btn-outline-light px-3 fw-bold rounded-pill">
+            <a href="{{ url_for('clientes') }}" class="btn btn-sm btn-outline-light px-3 fw-bold rounded-pill">
                 &larr; ATRÁS
             </a>
             <h1 class="h4 mb-0 text-uppercase fw-bold letter-spacing-1">
@@ -128,6 +128,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
 
     </main>
 

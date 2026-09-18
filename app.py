@@ -54,11 +54,21 @@ def clientes():
 def mataburros():
     conexion = obtener_conexion()
     
-    empresas = conexion.execute("SELECT id_cliente, nom_cli FROM clientes").fetchall()
-    tareas = conexion.execute("SELECT id_tarea, nom_tar, precio FROM tareas").fetchall()
+    empresas = conexion.execute("SELECT id_cliente, nom_cli, cuit FROM clientes").fetchall()
+    tareas = conexion.execute("SELECT id_tarea, nom_tar, precio, precio2, precio3 FROM tareas").fetchall()
     
     conexion.close()
     return render_template('mataburros.html', empresas=empresas, tareas=tareas, milagritos=modo_activo())
+
+@app.route('/precios')
+def precios():
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+
+    tareas = cursor.execute("SELECT nom_tar, precio, precio2, precio3 FROM tareas").fetchall()
+    
+    conexion.close()
+    return render_template('precios.html', tareas=tareas , milagritos=modo_activo())
 
 @app.route('/historial-cliente')
 def historial_cliente():
@@ -101,7 +111,7 @@ def historial_cliente():
 
     # 5. Obtenemos el total y el total por mes
     total_mes = sum(r['total'] for r in remitos)
-
+    cursor.close()
     return render_template('historial-cliente.html',
                         cliente=cliente,
                         remitos=remitos, 
@@ -115,9 +125,14 @@ def enviar_trabajo():
     # 1. Capturamos los datos del formulario
     remito = request.form.get('remito')
     id_cliente = request.form.get('empresa')
-    
-    # Capturamos todas las tareas que agregó el usuario con getlist
+    tipo_lista = request.form.get('tipo_lista', '1')  # 1, 2 o 3
+
+    columnas_precio = {'1': 'precio', '2': 'precio2', '3': 'precio3'}
+    columna_elegida = columnas_precio.get(tipo_lista, 'precio')  # Por defecto, 'precio'
+
+    # Capturamos todas las tareas y cantidades que agregó el usuario con getlist
     tareas_elegidas = request.form.getlist('tareas')
+    cantidades = request.form.getlist('cantidades')
     
     # Filtramos por si alguna quedó sin seleccionar
     ids_tareas = [int(t) for t in tareas_elegidas if t]
@@ -136,13 +151,15 @@ def enviar_trabajo():
         total_trabajo = 0.0
         detalles_a_guardar = [] # Guardará tuplas: (id_tarea, precio)
         
-        for id_t in ids_tareas:
-            cursor.execute("SELECT nom_tar, precio FROM tareas WHERE id_tarea = ?", (id_t,))
+        for id_t, cant in zip(ids_tareas, cantidades):
+            cantidad = int(cant) if cant else 1
+            cursor.execute(f"SELECT nom_tar, {columna_elegida} AS precio_final FROM tareas WHERE id_tarea = ?", (id_t,))
             fila = cursor.fetchone()
             if fila:
-                precio = fila['precio']
-                total_trabajo += precio
-                detalles_a_guardar.append((id_t, precio))
+                precio = fila['precio_final'] or 0.0 #Por si no tiene precio, lo ponemos en 0
+                subtotal = precio * cantidad
+                total_trabajo += subtotal
+                detalles_a_guardar.append((id_t, cantidad, precio, subtotal))
         
         # B. GUARDAR CABECERA en 'trabajos'
         cursor.execute("""
@@ -154,11 +171,11 @@ def enviar_trabajo():
         id_trabajo = cursor.lastrowid
         
         # C. GUARDAR RENGLONES en 'detalle_trabajos'
-        for id_t, precio in detalles_a_guardar:
+        for id_t, cant, p_unit, sub in detalles_a_guardar:
             cursor.execute("""
                 INSERT INTO detalle_trabajos (id_trabajo, id_tarea, cantidad, precio_unitario, subtotal)
-                VALUES (?, ?, 1, ?, ?)
-            """, (id_trabajo, id_t, precio, precio))
+                VALUES (?, ?, ?, ?, ?)
+            """, (id_trabajo, id_t, cant, p_unit, sub))
         
         # D. CONFIRMAMOS LA TRANSACCIÓN
         conexion.commit()
@@ -172,6 +189,32 @@ def enviar_trabajo():
         
     # Redirigimos al inicio
     return redirect(url_for('home'))
+
+@app.route('/agregar-cliente', methods=['POST'])
+def agregar_cliente():
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+
+    # Capturamos los datos del formulario
+    nom_cli = request.form.get('nombre')
+    cuit = request.form.get('cuit')
+    tel = request.form.get('tel')
+    mail = request.form.get('mail')
+
+    try:
+        cursor.execute("""
+            INSERT INTO clientes (nom_cli, cuit, tel, mail)
+            VALUES (?, ?, ?, ?)
+        """, (nom_cli, cuit, tel, mail))
+        conexion.commit()
+        print(f"[EXITO] Cliente '{nom_cli}' agregado correctamente.")
+    except sqlite3.IntegrityError as e:
+        print(f"[ERROR] No se pudo agregar el cliente: {e}")
+        return f"Error: No se pudo agregar el cliente '{nom_cli}'.", 400
+    finally:
+        conexion.close()
+
+    return redirect(url_for('clientes'))
 
 if __name__ == '__main__':
     app.run(debug=True)

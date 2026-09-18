@@ -98,6 +98,11 @@
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label small fw-bold text-secondary text-uppercase mb-0">Tareas Realizadas</label>
                         <div class="d-flex gap-2">
+                            <button type="button" id="btn-l1" onclick="cambiarLista(1)" class="btn btn-sm btn-primary btn-accion-tarea btn-lista">L1</button>
+                            <button type="button" id="btn-l2" onclick="cambiarLista(2)" class="btn btn-sm btn-outline-primary btn-accion-tarea btn-lista">L2</button>
+                            <button type="button" id="btn-l3" onclick="cambiarLista(3)" class="btn btn-sm btn-outline-primary btn-accion-tarea btn-lista">L3</button>
+                        </div>
+                        <div class="d-flex gap-2">
                             <button type="button" onclick="agregarFilaTarea()" class="btn btn-sm btn-success btn-accion-tarea">
                                 + Agregar Tarea
                             </button>
@@ -107,13 +112,28 @@
                         </div>
                     </div>
 
+                    <input type="hidden" name="tipo_lista" id="tipo_lista" value="1">
+
                     <div id="contenedor-tareas" class="d-flex flex-column gap-2 mt-2">
-                        <select name="tareas" class="form-select input-personalizado" required>
-                            <option value="" selected disabled>Selecciona una tarea realizada...</option>
-                            {% for t in tareas %}
-                                <option value="{{ t['id_tarea'] }}">{{ t['nom_tar'] }} &mdash; ${{ "{:,.2f}".format(t['precio']) }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="d-flex gap-2 align-items-center fila-tarea">
+                            <select name="tareas" class="form-select input-personalizado" required>
+                                <option value="" selected disabled data-nombre="Selecciona una tarea realizada..." data-precio1="precio1" data-precio2="precio2" data-precio3="precio3">
+                                    Selecciona una tarea realizada...
+                                </option>
+                                {% for t in tareas %}
+                                    <option value="{{ t['id_tarea'] }} " data-nombre="{{ t['nom_tar'] }}" data-precio1="{{ t['precio'] }}" data-precio2="{{ t['precio2'] }}" data-precio3="{{ t['precio3'] }}">
+                                        {{ t['nom_tar'] }} &mdash; ${{ "{:,.2f}".format(t['precio']) }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        
+                            <!-- Control de cantidad -->
+                            <div class="input-group" style="width: 130px;">
+                                <button type="button" class="btn btn-outline-secondary" onclick="modificarCantidad(this, -1)">-</button>
+                                <input type="number" name="cantidades" class="form-control text-center input-cantidad" value="1" min="1" readonly>
+                                <button type="button" class="btn btn-outline-secondary" onclick="modificarCantidad(this, 1)">+</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -132,17 +152,67 @@
     <script>
         function agregarFilaTarea() {
             const contenedor = document.getElementById('contenedor-tareas');
-            const primerSelect = contenedor.querySelector('select');
-            const nuevoSelect = primerSelect.cloneNode(true);
-            nuevoSelect.selectedIndex = 0;
-            contenedor.appendChild(nuevoSelect);
+            const primerFila = contenedor.querySelector('.fila-tarea');
+            
+            // Clonamos toda la fila (select + botones de cantidad)
+            const nuevaFila = primerFila.cloneNode(true);
+            
+            // Reseteamos el select y la cantidad a 1
+            nuevaFila.querySelector('select').selectedIndex = 0;
+            nuevaFila.querySelector('.input-cantidad').value = 1;
+            
+            contenedor.appendChild(nuevaFila);
         }
 
         function quitarFilaTarea() {
             const contenedor = document.getElementById('contenedor-tareas');
-            const selects = contenedor.querySelectorAll('select');
-            if (selects.length > 1) {
-                contenedor.removeChild(selects[selects.length - 1]);
+            const filas = contenedor.querySelectorAll('.fila-tarea');
+            if (filas.length > 1) {
+                contenedor.removeChild(filas[filas.length - 1]);
+            }
+        }
+
+        function cambiarLista(numeroLista) {
+            document.getElementById('tipo_lista').value = numeroLista;
+            const contenedor = document.querySelectorAll('#contenedor-tareas select');
+            for (let select of contenedor) {
+                for (let opcion of select.options) {
+                    const precio1 = opcion.getAttribute('data-precio1');
+                    const precio2 = opcion.getAttribute('data-precio2');
+                    const precio3 = opcion.getAttribute('data-precio3');
+                    const nombre = opcion.getAttribute('data-nombre');
+                    if (numeroLista === 1) {
+                        opcion.textContent = `${nombre} — $${parseFloat(precio1).toFixed(2)}`;
+                    } else if (numeroLista === 2) {
+                        opcion.textContent = `${nombre} — $${parseFloat(precio2).toFixed(2)}`;
+                    } else if (numeroLista === 3) {
+                        opcion.textContent = `${nombre} — $${parseFloat(precio3).toFixed(2)}`;
+                    }
+                    if (opcion.value === "") {
+                        opcion.textContent = "Selecciona una tarea realizada...";
+                    }
+                }
+            }
+            // 1. A todos los botones de lista les quitamos el azul relleno y les ponemos el borde
+            document.querySelectorAll('.btn-lista').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-primary');
+            });
+            // 2. Al botón presionado le ponemos el azul relleno
+            const botonActivo = document.getElementById(`btn-l${numeroLista}`);
+            botonActivo.classList.remove('btn-outline-primary');
+            botonActivo.classList.add('btn-primary');
+        }
+
+        function modificarCantidad(boton, cambio) {
+            // Buscamos el input de cantidad que está al lado de este botón
+            const input = boton.parentElement.querySelector('.input-cantidad');
+            let valorActual = parseInt(input.value) || 1;
+            let nuevoValor = valorActual + cambio;
+            
+            // Evitamos que baje de 1
+            if (nuevoValor >= 1) {
+                input.value = nuevoValor;
             }
         }
     </script>

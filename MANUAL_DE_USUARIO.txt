@@ -1,0 +1,125 @@
+# ==============================================================================
+# MANUAL DE USUARIO Y DOCUMENTACIÓN DEL SISTEMA
+# SG - Gomería El Puente
+# ==============================================================================
+
+1. INTRODUCCIÓN Y PROPÓSITO DEL SISTEMA
+------------------------------------------------------------------------------
+El "Sistema de Gestión - Gomería El Puente" es una aplicación web local desarrollada 
+en Python (Flask) y SQLite diseñada para agilizar y organizar la operatoria diaria del 
+taller mecánico / gomería comercial.
+
+Su objetivo principal es simplificar:
+- La carga y cálculo rápido de trabajos/remitos de servicios.
+- La administración y registro de clientes y empresas.
+- El control de tarifas con múltiples listas de precios.
+- El seguimiento histórico de facturación por cliente y mes.
+
+
+2. CARACTERÍSTICAS PRINCIPALES ("QUÉ OFRECE")
+------------------------------------------------------------------------------
+* INTERFAZ INTUITIVA Y ÁGIL:
+  Diseño limpio y amigable optimizado para uso en mostrador o computadora del taller.
+
+* GENERADOR RÁPIDO DE TRABAJOS / MATABURROS:
+  - Formulario ágil para volcar remitos en papel al sistema.
+  - Selección de cliente desplegable con CUIT identificador.
+  - Selección de múltiples tareas y servicios con ajuste rápido de cantidades (+/-).
+  - Selector de listas de precios (L1, L2, L3) que recalcula y muestra los importes
+    en tiempo real para evitar errores de cobro o cotización.
+  - Cálculo automático y transparente del costo total del trabajo.
+
+* GESTIÓN DE CLIENTES Y EMPRESAS:
+  - Alta rápida de nuevas empresas (Razón Social, CUIT, Teléfono, Correo Electrónico).
+  - Vista en tarjetas con los datos de contacto directo de cada cliente.
+  - Acceso directo al historial individual de cada empresa.
+
+* HISTORIAL CENTRALIZADO DE REMITOS:
+  - Tabla general con todos los remitos emitidos (Fecha, N° Remito, Empresa, Total y Estado).
+  - Estados claros de seguimiento (PENDIENTE / PAGADO).
+
+* HISTORIAL DETALLADO POR CLIENTE Y FILTRADO MENSUAL:
+  - Pestañas dinámicas estilo carpetas/hoja de cálculo por período (mes/año).
+  - Cálculo instantáneo del "TOTAL FACTURADO" para el período seleccionado.
+  - Detalle de cada remito emitido para esa empresa.
+
+* CONSULTA DE LISTA DE PRECIOS:
+  - Pantalla dedicada para visualizar las tarifas vigentes de todos los servicios 
+    y productos en sus 3 modalidades de precio (Precio 1, Precio 2 y Precio 3).
+
+* MODO MILAGRITOS (EASTER EGG / MODO ESPECIAL):
+  - Botón interactivo (icono de hada 🧚) en el encabezado que permite alternar 
+    un estilo visual alternativo y personalizado.
+
+
+3. GUÍA DE USO PASO A PASO (MANUAL DE USUARIO)
+------------------------------------------------------------------------------
+
+3.1. PANTALLA PRINCIPAL (INICIO)
+- Al abrir el sistema, se muestra el menú central con acceso a los 3 módulos:
+  1. Mataburros: Cargar un nuevo trabajo / remito.
+  2. Clientes: Ver empresas, cargar nuevas y consultar el historial general.
+  3. Precios: Ver la lista de precios completa.
+
+3.2. CÓMO REGISTRAR UN NUEVO TRABAJO ("MATABURROS")
+- Acceder haciendo clic en "Mataburros".
+- Paso 1: Ingresar el "Número de Remito" (por ejemplo, el número del talonario en papel).
+- Paso 2: Seleccionar la Empresa / Cliente en el menú desplegable.
+- Paso 3 (Opcional): Elegir la lista de precios a aplicar haciendo clic en L1, L2 o L3 
+  según el acuerdo con el cliente. Las opciones del menú actualizarán sus valores.
+- Paso 4: Seleccionar la tarea realizada. Si hubo más de una unidad, utilizar los 
+  botones "+" o "-" para ajustar la cantidad.
+- Paso 5: Si el remito contiene más tareas, presionar el botón verde "+ Agregar Tarea".
+  Si se agregó una de más, usar "- Quitar Tarea".
+- Paso 6: Presionar "Guardar Remito y Calcular Total". El sistema calculará el 
+  subtotal de cada tarea, el total del remito y lo almacenará con estado "PENDIENTE".
+
+3.3. CÓMO ADMINISTRAR CLIENTES Y VER REMITOS
+- Acceder haciendo clic en "Clientes".
+- Para registrar un cliente nuevo:
+  1. Presionar el botón verde "+ AGREGAR NUEVA EMPRESA".
+  2. Completar: Razón Social / Nombre, CUIT, Teléfono y Email.
+  3. Presionar "Guardar Empresa". La nueva empresa aparecerá inmediatamente en las tarjetas.
+- Para consultar el historial de un cliente:
+  1. Buscar la tarjeta de la empresa deseada.
+  2. Presionar el botón "Ver Historial ->".
+- Para consultar el historial general:
+  1. En la parte inferior de la pantalla se listan todos los remitos cronológicamente.
+
+3.4. CÓMO REVISAR EL HISTORIAL Y TOTAL FACTURADO DE UN CLIENTE
+- En la vista del cliente:
+  - Se visualizan pestañas en la parte superior: "Ver Todos" y pestañas por mes (ej. 2026-09).
+  - Al hacer clic en un mes determinado, la tarjeta superior mostrará inmediatamente 
+    la suma total facturada en ese período ("TOTAL FACTURADO (AAAA-MM)").
+  - En la tabla inferior se detallan los números de remito, fechas y montos correspondientes.
+
+3.5. CÓMO CONSULTAR LA LISTA DE PRECIOS
+- Acceder a "Precios" desde el inicio.
+- Se presenta una tabla ordenada con todos los conceptos cargados en la base de datos 
+  junto a sus tres listas de precios (Precio 1, Precio 2 y Precio 3).
+
+
+4. ESTRUCTURA TÉCNICA DEL SISTEMA
+------------------------------------------------------------------------------
+- Lenguaje: Python 3
+- Framework Web: Flask
+- Motor de Base de Datos: SQLite (`sg_gomeria.db`)
+- Frontend: HTML5, Jinja2, CSS3 y Bootstrap 5
+
+Archivos clave:
+- `app.py`: Servidor Flask, lógica de rutas, consultas SQL y procesamiento de formularios.
+- `sg_gomeria.db`: Base de datos relacional con tablas de `clientes`, `tareas`, `trabajos` y `detalle_trabajos`.
+- `templates/`: Plantillas visuales (index, clientes, mataburros, historial-cliente, precios).
+- `static/`: Hojas de estilo personalizadas (`estilos.css`) e imágenes/logos corporativos.
+
+
+5. CÓMO INICIAR EL PROGRAMA
+------------------------------------------------------------------------------
+1. Abrir una terminal o consola de comandos en la carpeta del proyecto:
+   cd "C:\Users\ignac\Desktop\SG - Gomería"
+
+2. Ejecutar el servidor con Python:
+   python app.py
+
+3. Abrir un navegador web (Chrome, Edge, Firefox) e ingresar a la dirección:
+   http://127.0.0.1:5000/
