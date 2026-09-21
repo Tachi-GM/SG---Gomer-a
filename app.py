@@ -45,9 +45,26 @@ def clientes():
         JOIN clientes c ON t.id_cliente = c.id_cliente
         ORDER BY t.fecha DESC, t.id_trabajo DESC
     """).fetchall()
+
+    # Traemos el detalle de tareas de TODOS los trabajos
+    detalles_raw = cursor.execute("""
+        SELECT dt.id_trabajo, tar.nom_tar, dt.cantidad, dt.subtotal
+        FROM detalle_trabajos dt
+        JOIN tareas tar ON dt.id_tarea = tar.id_tarea
+        ORDER BY dt.id_trabajo
+    """).fetchall()
+
+    # Agrupamos por id_trabajo en un diccionario: {id_trabajo: [detalle1, detalle2, ...]}
+    detalles_por_trabajo = {}
+    for d in detalles_raw:
+        detalles_por_trabajo.setdefault(d['id_trabajo'], []).append(d)
     
     conexion.close()
-    return render_template('clientes.html', empresas=empresas, remitos=remitos, milagritos=modo_activo())
+    return render_template('clientes.html',
+                        empresas=empresas,
+                        remitos=remitos,
+                        detalles_por_trabajo=detalles_por_trabajo
+                        ,milagritos=modo_activo())
 
 # Pantalla del Formulario Mataburros
 @app.route('/mataburros')
@@ -111,14 +128,53 @@ def historial_cliente():
 
     # 5. Obtenemos el total y el total por mes
     total_mes = sum(r['total'] for r in remitos)
+
+    # NUEVO: traemos el detalle solo de los trabajos que aparecen en `remitos`
+    ids_trabajo = [r['id_trabajo'] for r in remitos]
+    detalles_por_trabajo = {}
+    
+    if ids_trabajo:
+        # Generamos "?, ?, ?" según cuántos ids haya, para el IN de SQL
+        placeholders = ','.join('?' for _ in ids_trabajo)
+        detalles_raw = cursor.execute(f"""
+            SELECT dt.id_trabajo, tar.nom_tar, dt.cantidad, dt.subtotal
+            FROM detalle_trabajos dt
+            JOIN tareas tar ON dt.id_tarea = tar.id_tarea
+            WHERE dt.id_trabajo IN ({placeholders})
+            ORDER BY dt.id_trabajo
+        """, ids_trabajo).fetchall()
+        
+        for d in detalles_raw:
+            detalles_por_trabajo.setdefault(d['id_trabajo'], []).append(d)
+
     cursor.close()
     return render_template('historial-cliente.html',
                         cliente=cliente,
                         remitos=remitos, 
                         total_mes=total_mes,
                         meses_disponibles=meses_disponibles,
+                        detalles_por_trabajo= detalles_por_trabajo,
                         periodo_seleccionado=periodo_seleccionado)
 
+
+@app.route('/actualizar-estado', methods=['POST'])
+def actualizar_estado():
+    id_trabajo = request.form.get('id_trabajo')
+    nuevo_estado = request.form.get('estado')
+
+    estados_validos=['PENDIENTE', 'EN PROCESO', 'PAGADO']
+
+    if nuevo_estado not in estados_validos:
+        return "Estado invalido", 400
+
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+
+    cursor.execute('UPDATE trabajos SET estado = ? WHERE id_trabajo = ?'), (nuevo_estado, id_trabajo)
+    conexion.commit()
+    conexion.close()
+
+    return "OK", 200
 
 @app.route('/enviar-trabajo', methods=['POST'])
 def enviar_trabajo():

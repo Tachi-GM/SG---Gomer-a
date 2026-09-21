@@ -113,7 +113,7 @@
                 </thead>
                 <tbody>
                     {% for remito in remitos %}
-                    <tr>
+                    <tr class="fila-remito" onclick="toggleDetalle(this)">
                         <td>{{ remito['fecha'] }}</td>
                         <td>{{ remito['remito'] }}</td>
                         <td>${{ remito['total'] }}</td>
@@ -125,6 +125,16 @@
                             {% endif %}
                         </td>
                     </tr>
+                    <tr class="fila-detalle d-none">
+                        <td colspan="4" class="px-4 py-3">
+                            <strong class="d-block mb-2 text-secondary text-uppercase small">Tareas realizadas</strong>
+                            <ul class="mb-0 ps-3">
+                                {% for d in detalles_por_trabajo.get(remito['id_trabajo'], []) %}
+                                <li>{{ d['nom_tar'] }} &times; {{ d['cantidad'] }} &mdash; ${{ "{:,.2f}".format(d['subtotal']) }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -134,5 +144,6 @@
 
     <!-- Bootstrap JS para que funcione el botón desplegable de nueva empresa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/clientes.js"></script>
 </body>
 </html>
