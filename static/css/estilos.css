@@ -64,6 +64,13 @@ body {
     padding: 6px 12px;
     border-radius: 20px;
 }
+.badge-proceso {
+    background-color: #d4edda;
+    color: #155724;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
 .tabla-remitos {
     background-color: white;
     border-radius: 15px;
@@ -153,6 +160,137 @@ body {
     height: auto;
     mix-blend-mode: multiply; 
     filter: contrast(105%); 
+}
+
+.link-salir {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.2s ease;
+}
+.link-salir:hover {
+    color: #ffffff;
+    text-decoration: underline !important;
+}
+
+/* ===== BUSCADOR DE CLIENTES ===== */
+.buscador-clientes .form-control {
+    border: 1.5px solid #e2e8f0;
+    background-color: #f8fafc;
+    font-weight: 500;
+    color: #1e293b;
+    transition: all 0.2s ease;
+}
+
+.buscador-clientes .form-control:focus {
+    background-color: #ffffff;
+    border-color: #1a42b8;
+    box-shadow: 0 0 0 4px rgba(26, 66, 184, 0.15);
+    z-index: 3;
+}
+
+.buscador-clientes .btn-primary {
+    background-color: #1a42b8;
+    border-color: #1a42b8;
+    font-weight: 600;
+}
+
+.buscador-clientes .btn-primary:hover {
+    background-color: #142f85;
+    border-color: #142f85;
+}
+
+.buscador-clientes .btn-outline-secondary {
+    font-weight: 600;
+}
+
+.buscador-clientes > :first-child {
+    border-top-left-radius: 50px !important;
+    border-bottom-left-radius: 50px !important;
+}
+
+.buscador-clientes > :last-child {
+    border-top-right-radius: 50px !important;
+    border-bottom-right-radius: 50px !important;
+}
+
+/* ===== LISTA DE PRECIOS ===== */
+.tarjeta-precios {
+    overflow: hidden; /* para que el header de la tabla respete el borde redondeado */
+}
+
+.tabla-precios thead tr {
+    background-color: #1a42b8;
+}
+
+.tabla-precios thead th {
+    color: #090606;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+    border: none;
+    padding: 14px 16px;
+}
+
+.tabla-precios tbody td {
+    padding: 14px 16px;
+    vertical-align: middle;
+    border-color: #eef2ff;
+}
+
+.tabla-precios tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.tabla-precios tbody tr:hover {
+    background-color: #eef2ff;
+}
+
+.chip-precio {
+    display: inline-block;
+    min-width: 90px;
+    text-align: center;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+}
+
+.chip-l1 {
+    background-color: #eef2ff;
+    color: #1a42b8;
+}
+
+.chip-l2 {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+
+.chip-l3 {
+    background-color: #1a42b8;
+    color: #ffffff;
+}
+
+/* Coherencia con el Modo Milagritos */
+body.modo-milagritos .tabla-precios thead tr {
+    background-color: #ff8fab;
+}
+
+body.modo-milagritos .chip-l1 {
+    background-color: #fff0f5;
+    color: #c9184a;
+}
+
+body.modo-milagritos .chip-l2 {
+    background-color: #ffccd5;
+    color: #7a2e46;
+}
+
+body.modo-milagritos .chip-l3 {
+    background-color: #ff6f91;
+    color: #ffffff;
 }
 
 /* ===== MODO MILAGRITOS 🐾 ===== */

@@ -27,17 +27,40 @@ def toggle_milagritos():
 def home():
     return render_template('index.html', milagritos=modo_activo())
 
+@app.route('/salir')
+def salir():
+    return render_template('salir.html', milagritos=modo_activo())
+
 # Pantalla de Gestión de Clientes y Dashboard General
 @app.route('/clientes')
 def clientes():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     
-    empresas = cursor.execute("""
-        SELECT id_cliente, nom_cli, cuit, tel, mail 
-        FROM clientes 
-        ORDER BY nom_cli
-    """).fetchall()
+    #Texto del buscador
+    buscar = request.args.get('buscar', '').strip()
+    
+    #Buscar si se escribio algo
+    if buscar:
+        empresas = cursor.execute("""
+            SELECT id_cliente, nom_cli, cuit, tel, mail 
+            FROM clientes 
+            WHERE nom_cli LIKE ?
+               OR cuit LIKE ?
+               OR tel LIKE ?
+            ORDER BY nom_cli
+        """, (
+            f'%{buscar}%',
+            f'%{buscar}%',
+            f'%{buscar}%'
+        )).fetchall()
+
+    else:
+        empresas = cursor.execute("""
+            SELECT id_cliente, nom_cli, cuit, tel, mail 
+            FROM clientes 
+            ORDER BY nom_cli
+        """).fetchall()
     
     remitos = cursor.execute("""
         SELECT t.id_trabajo, t.remito, t.fecha, c.nom_cli, t.total, t.estado
@@ -63,6 +86,7 @@ def clientes():
     return render_template('clientes.html',
                         empresas=empresas,
                         remitos=remitos,
+                        buscar= buscar,
                         detalles_por_trabajo=detalles_por_trabajo
                         ,milagritos=modo_activo())
 
@@ -98,7 +122,7 @@ def historial_cliente():
     cliente = cursor.execute("SELECT id_cliente, nom_cli, cuit FROM clientes WHERE id_cliente = ?", (id_cliente,)).fetchone()
     # 1. Armamos la consulta base y la lista de parámetros
     query = """
-        SELECT t.id_trabajo, t.remito, t.fecha, t.total,
+        SELECT t.id_trabajo, t.remito, t.fecha, t.total, t.estado,
                GROUP_CONCAT(tar.nom_tar, ', ') AS detalle_tareas
         FROM trabajos t
         LEFT JOIN detalle_trabajos dt ON t.id_trabajo = dt.id_trabajo
@@ -170,7 +194,7 @@ def actualizar_estado():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
 
-    cursor.execute('UPDATE trabajos SET estado = ? WHERE id_trabajo = ?'), (nuevo_estado, id_trabajo)
+    cursor.execute('UPDATE trabajos SET estado = ? WHERE id_trabajo = ?', (nuevo_estado, id_trabajo))
     conexion.commit()
     conexion.close()
 
